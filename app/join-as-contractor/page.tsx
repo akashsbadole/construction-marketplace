@@ -1,16 +1,28 @@
-"use client"
+"use client";
 
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Upload, CheckCircle, Star, TrendingUp, Users } from "lucide-react"
+import { useState } from "react";
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Upload, CheckCircle, Star, TrendingUp, Users } from "lucide-react";
 
 export default function JoinAsContractorPage() {
+  const [experience, setExperience] = useState("");
+  const [teamSize, setTeamSize] = useState("");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+
   const benefits = [
     {
       icon: TrendingUp,
@@ -27,7 +39,7 @@ export default function JoinAsContractorPage() {
       title: "Build Reputation",
       description: "Showcase your work and build a strong online presence",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -38,10 +50,12 @@ export default function JoinAsContractorPage() {
             {/* Benefits Section */}
             <div>
               <div className="mb-8">
-                <h1 className="text-4xl font-bold mb-4">Join as a Contractor</h1>
+                <h1 className="text-4xl font-bold mb-4">
+                  Join as a Contractor
+                </h1>
                 <p className="text-muted-foreground text-lg">
-                  Grow your construction business with India's largest marketplace. Get access to quality projects and
-                  customers.
+                  Grow your construction business with India's largest
+                  marketplace. Get access to quality projects and customers.
                 </p>
               </div>
 
@@ -53,7 +67,9 @@ export default function JoinAsContractorPage() {
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">{benefit.title}</h3>
-                      <p className="text-muted-foreground text-sm">{benefit.description}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {benefit.description}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -64,11 +80,15 @@ export default function JoinAsContractorPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Free profile creation and verification</span>
+                    <span className="text-sm">
+                      Free profile creation and verification
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Access to project bidding system</span>
+                    <span className="text-sm">
+                      Access to project bidding system
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -76,7 +96,9 @@ export default function JoinAsContractorPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Customer review and rating system</span>
+                    <span className="text-sm">
+                      Customer review and rating system
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -98,7 +120,9 @@ export default function JoinAsContractorPage() {
                     <h3 className="font-semibold">Personal Information</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium">First Name</label>
+                        <label className="text-sm font-medium">
+                          First Name
+                        </label>
                         <Input placeholder="Enter first name" />
                       </div>
                       <div>
@@ -107,11 +131,15 @@ export default function JoinAsContractorPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Email Address</label>
+                      <label className="text-sm font-medium">
+                        Email Address
+                      </label>
                       <Input type="email" placeholder="Enter email address" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Phone Number</label>
+                      <label className="text-sm font-medium">
+                        Phone Number
+                      </label>
                       <Input placeholder="Enter phone number" />
                     </div>
                   </div>
@@ -120,13 +148,20 @@ export default function JoinAsContractorPage() {
                   <div className="space-y-4">
                     <h3 className="font-semibold">Business Information</h3>
                     <div>
-                      <label className="text-sm font-medium">Business Name</label>
+                      <label className="text-sm font-medium">
+                        Business Name
+                      </label>
                       <Input placeholder="Enter business name" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium">Years of Experience</label>
-                        <Select>
+                        <label className="text-sm font-medium">
+                          Years of Experience
+                        </label>
+                        <Select
+                          value={experience}
+                          onValueChange={setExperience}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select experience" />
                           </SelectTrigger>
@@ -154,18 +189,28 @@ export default function JoinAsContractorPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Specialization</label>
+                      <label className="text-sm font-medium">
+                        Specialization
+                      </label>
                       <div className="grid grid-cols-2 gap-2 mt-2">
-                        {["Residential", "Commercial", "Interior", "Renovation", "Electrical", "Plumbing"].map(
-                          (spec) => (
-                            <div key={spec} className="flex items-center space-x-2">
-                              <Checkbox id={spec} />
-                              <label htmlFor={spec} className="text-sm">
-                                {spec}
-                              </label>
-                            </div>
-                          ),
-                        )}
+                        {[
+                          "Residential",
+                          "Commercial",
+                          "Interior",
+                          "Renovation",
+                          "Electrical",
+                          "Plumbing",
+                        ].map((spec) => (
+                          <div
+                            key={spec}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox id={spec} />
+                            <label htmlFor={spec} className="text-sm">
+                              {spec}
+                            </label>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -182,7 +227,9 @@ export default function JoinAsContractorPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="delhi">Delhi</SelectItem>
-                            <SelectItem value="maharashtra">Maharashtra</SelectItem>
+                            <SelectItem value="maharashtra">
+                              Maharashtra
+                            </SelectItem>
                             <SelectItem value="karnataka">Karnataka</SelectItem>
                             <SelectItem value="telangana">Telangana</SelectItem>
                           </SelectContent>
@@ -204,7 +251,9 @@ export default function JoinAsContractorPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium">Service Areas</label>
+                      <label className="text-sm font-medium">
+                        Service Areas
+                      </label>
                       <Textarea placeholder="List areas where you provide services..." />
                     </div>
                   </div>
@@ -215,15 +264,21 @@ export default function JoinAsContractorPage() {
                     <div className="space-y-3">
                       <div className="border-2 border-dashed rounded-lg p-4 text-center">
                         <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">Upload Business License</p>
+                        <p className="text-sm text-muted-foreground">
+                          Upload Business License
+                        </p>
                       </div>
                       <div className="border-2 border-dashed rounded-lg p-4 text-center">
                         <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">Upload GST Certificate</p>
+                        <p className="text-sm text-muted-foreground">
+                          Upload GST Certificate
+                        </p>
                       </div>
                       <div className="border-2 border-dashed rounded-lg p-4 text-center">
                         <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">Upload Portfolio Images</p>
+                        <p className="text-sm text-muted-foreground">
+                          Upload Portfolio Images
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -246,5 +301,5 @@ export default function JoinAsContractorPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

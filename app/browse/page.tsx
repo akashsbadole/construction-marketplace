@@ -1,31 +1,46 @@
-"use client"
+"use client";
 
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Badge } from "@/components/ui/badge"
-import { StarIcon, Filter } from "lucide-react"
-import { useState } from "react"
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { StarIcon, Filter } from "lucide-react";
+import { useState } from "react";
 
 const prompts = [
   {
     id: 1,
     title: "Creative Story Generator",
-    description: "Generate engaging short stories with complex characters and plot twists.",
+    description:
+      "Generate engaging short stories with complex characters and plot twists.",
     price: 0.1,
     category: "Creative Writing",
     rating: 4.8,
     seller: "Alice.eth",
   },
   // Add more prompts...
-]
+];
 
 export default function BrowsePage() {
-  const [priceRange, setPriceRange] = useState([0, 1])
+  const [priceRange, setPriceRange] = useState([0, 1]);
+  const [category, setCategory] = useState("");
+  const [sortBy, setSortBy] = useState("recent");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -41,7 +56,7 @@ export default function BrowsePage() {
               </h2>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
-                <Select>
+                <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -55,7 +70,12 @@ export default function BrowsePage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Range (ETH)</label>
-                <Slider value={priceRange} onValueChange={setPriceRange} max={1} step={0.01} />
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={1}
+                  step={0.01}
+                />
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>{priceRange[0]} ETH</span>
                   <span>{priceRange[1]} ETH</span>
@@ -63,15 +83,19 @@ export default function BrowsePage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Sort By</label>
-                <Select defaultValue="recent">
+                <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="recent">Most Recent</SelectItem>
                     <SelectItem value="popular">Most Popular</SelectItem>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="price-low">
+                      Price: Low to High
+                    </SelectItem>
+                    <SelectItem value="price-high">
+                      Price: High to Low
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -93,17 +117,23 @@ export default function BrowsePage() {
                       <span>{prompt.title}</span>
                       <Badge variant="secondary">{prompt.category}</Badge>
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">{prompt.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {prompt.description}
+                    </p>
                   </CardHeader>
                   <CardContent className="flex-1">
                     <div className="flex items-center gap-2">
                       <StarIcon className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                       <span className="text-sm">{prompt.rating}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">Seller: {prompt.seller}</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Seller: {prompt.seller}
+                    </p>
                   </CardContent>
                   <CardFooter className="flex justify-between items-center">
-                    <span className="text-lg font-bold">{prompt.price} ETH</span>
+                    <span className="text-lg font-bold">
+                      {prompt.price} ETH
+                    </span>
                     <Button>View Details</Button>
                   </CardFooter>
                 </Card>
@@ -114,5 +144,5 @@ export default function BrowsePage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

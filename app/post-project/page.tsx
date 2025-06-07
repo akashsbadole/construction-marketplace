@@ -95,6 +95,7 @@ export default function PostProjectPage() {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState("details");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [projectType, setProjectType] = useState("residential");
   const [formData, setFormData] = useState<ProjectFormData>({
     title: "",
     description: "",
@@ -378,7 +379,12 @@ export default function PostProjectPage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Location</label>
                     <div className="flex gap-4">
-                      <Select className="flex-1">
+                      <Select
+                        value={formData.location.state}
+                        onValueChange={(value) =>
+                          handleNestedInputChange("location", "state", value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select state" />
                         </SelectTrigger>
@@ -392,7 +398,12 @@ export default function PostProjectPage() {
                           <SelectItem value="tamilnadu">Tamil Nadu</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Select className="flex-1">
+                      <Select
+                        value={formData.location.city}
+                        onValueChange={(value) =>
+                          handleNestedInputChange("location", "city", value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select city" />
                         </SelectTrigger>
@@ -438,7 +449,7 @@ export default function PostProjectPage() {
                         placeholder="Area"
                         className="w-32"
                       />
-                      <Select defaultValue="sqft">
+                      <Select value="sqft" onValueChange={() => {}}>
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
@@ -456,7 +467,7 @@ export default function PostProjectPage() {
                     <label className="text-sm font-medium">
                       Number of Floors
                     </label>
-                    <Select>
+                    <Select value="" onValueChange={() => {}}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select floors" />
                       </SelectTrigger>

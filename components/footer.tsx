@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Facebook, Instagram, Linkedin, Phone } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Facebook, Instagram, Linkedin, Phone } from "lucide-react";
 
 export function Footer() {
   return (
@@ -11,17 +11,26 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">About</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/about"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   About Us
                 </Link>
               </li>
               <li>
-                <Link href="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/how-it-works"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   How It Works
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/careers"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Careers
                 </Link>
               </li>
@@ -31,17 +40,26 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">For Contractors</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/join-as-contractor" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/join-contractor"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Join as Contractor
                 </Link>
               </li>
               <li>
-                <Link href="/contractor-resources" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/contractor-resources"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Resources
                 </Link>
               </li>
               <li>
-                <Link href="/success-stories" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/success-stories"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Success Stories
                 </Link>
               </li>
@@ -51,17 +69,26 @@ export function Footer() {
             <h3 className="text-lg font-semibold mb-4">Legal</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/privacy"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/terms"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/dispute-resolution" className="text-sm text-muted-foreground hover:text-foreground">
+                <Link
+                  href="/dispute-resolution"
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
                   Dispute Resolution
                 </Link>
               </li>
@@ -98,10 +125,11 @@ export function Footer() {
         </div>
         <div className="mt-10 border-t pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} BuildConnect India. All rights reserved. | GST: 27AABCI1234Z1ZA
+            © {new Date().getFullYear()} BuildConnect India. All rights
+            reserved. | GST: 27AABCI1234Z1ZA
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

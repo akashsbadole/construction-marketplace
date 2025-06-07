@@ -1,21 +1,34 @@
-"use client"
+"use client";
 
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Badge } from "@/components/ui/badge"
-import { StarIcon, Filter, MapPin, Briefcase, CheckCircle } from "lucide-react"
-import { useState } from "react"
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { StarIcon, Filter, MapPin, Briefcase, CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 const contractors = [
   {
     id: 1,
     name: "Sharma Construction",
-    description: "Specializing in residential buildings with 15+ years of experience.",
+    description:
+      "Specializing in residential buildings with 15+ years of experience.",
     location: "Delhi NCR",
     category: "Residential",
     rating: 4.8,
@@ -25,7 +38,8 @@ const contractors = [
   {
     id: 2,
     name: "Patel Brothers",
-    description: "Commercial construction experts with focus on modern office spaces.",
+    description:
+      "Commercial construction experts with focus on modern office spaces.",
     location: "Mumbai",
     category: "Commercial",
     rating: 4.9,
@@ -62,10 +76,13 @@ const contractors = [
     projects: 60,
     verified: true,
   },
-]
+];
 
 export default function ContractorsPage() {
-  const [priceRange, setPriceRange] = useState([0, 100])
+  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [specialization, setSpecialization] = useState("");
+  const [location, setLocation] = useState("");
+  const [sortBy, setSortBy] = useState("rating");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -81,7 +98,10 @@ export default function ContractorsPage() {
               </h2>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Specialization</label>
-                <Select>
+                <Select
+                  value={specialization}
+                  onValueChange={setSpecialization}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
@@ -96,7 +116,7 @@ export default function ContractorsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location</label>
-                <Select>
+                <Select value={location} onValueChange={setLocation}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select city" />
                   </SelectTrigger>
@@ -112,8 +132,15 @@ export default function ContractorsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Budget Range (Lakhs ₹)</label>
-                <Slider value={priceRange} onValueChange={setPriceRange} max={100} step={5} />
+                <label className="text-sm font-medium">
+                  Budget Range (Lakhs ₹)
+                </label>
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={100}
+                  step={5}
+                />
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>₹{priceRange[0]} L</span>
                   <span>₹{priceRange[1]} L</span>
@@ -121,7 +148,7 @@ export default function ContractorsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Sort By</label>
-                <Select defaultValue="rating">
+                <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -153,13 +180,17 @@ export default function ContractorsPage() {
                       <span>{contractor.name}</span>
                       <Badge variant="secondary">{contractor.category}</Badge>
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">{contractor.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {contractor.description}
+                    </p>
                   </CardHeader>
                   <CardContent className="flex-1 space-y-3">
                     <div className="flex items-center gap-2">
                       <StarIcon className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                       <span className="text-sm">{contractor.rating}</span>
-                      <span className="text-sm text-muted-foreground">({contractor.projects} projects)</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({contractor.projects} projects)
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
@@ -172,7 +203,9 @@ export default function ContractorsPage() {
                     {contractor.verified && (
                       <div className="flex items-center gap-2 text-green-600">
                         <CheckCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">Verified Contractor</span>
+                        <span className="text-sm font-medium">
+                          Verified Contractor
+                        </span>
                       </div>
                     )}
                   </CardContent>
@@ -188,5 +221,5 @@ export default function ContractorsPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

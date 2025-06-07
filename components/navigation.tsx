@@ -1,17 +1,22 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Menu, Search, User, ChevronDown } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
-import { ShoppingCartSheet } from "@/components/shopping-cart"
-import { MessagingSystem } from "@/components/messaging-system"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, Search, User, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { ShoppingCart } from "@/components/shopping-cart";
+import { MessagingTrigger } from "@/components/messaging-trigger";
 
 export function Navigation() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -21,7 +26,9 @@ export function Navigation() {
             <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">BC</span>
             </div>
-            <span className="hidden font-bold sm:inline-block">BuildConnect India</span>
+            <span className="hidden font-bold sm:inline-block">
+              BuildConnect India
+            </span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <DropdownMenu>
@@ -58,7 +65,10 @@ export function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/projects" className="transition-colors hover:text-foreground/80 text-foreground">
+            <Link
+              href="/projects"
+              className="transition-colors hover:text-foreground/80 text-foreground"
+            >
               Projects
             </Link>
 
@@ -111,7 +121,10 @@ export function Navigation() {
               <Link href="/wishlist" className="hover:text-foreground/80">
                 Wishlist
               </Link>
-              <Link href="/join-as-contractor" className="hover:text-foreground/80">
+              <Link
+                href="/join-as-contractor"
+                className="hover:text-foreground/80"
+              >
                 Become Contractor
               </Link>
               <Link href="/join-as-vendor" className="hover:text-foreground/80">
@@ -125,12 +138,18 @@ export function Navigation() {
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search contractors, materials..." className="pl-8 md:w-[300px] lg:w-[400px]" />
+              <Input
+                placeholder="Search contractors, materials..."
+                className="pl-8 md:w-[300px] lg:w-[400px]"
+              />
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <MessagingSystem />
-            <ShoppingCartSheet />
+            <MessagingTrigger
+              currentUserId={isLoggedIn ? "user-123" : undefined}
+              unreadCount={3}
+            />
+            <ShoppingCart />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="hidden md:flex">
@@ -154,11 +173,15 @@ export function Navigation() {
                     <DropdownMenuItem asChild>
                       <Link href="/wishlist">Wishlist</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>Logout</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                      Logout
+                    </DropdownMenuItem>
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem onClick={() => setIsLoggedIn(true)}>Login</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsLoggedIn(true)}>
+                      Login
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Register</DropdownMenuItem>
                   </>
                 )}
@@ -168,5 +191,5 @@ export function Navigation() {
         </div>
       </div>
     </header>
-  )
+  );
 }
