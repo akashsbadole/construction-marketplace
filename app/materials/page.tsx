@@ -1,151 +1,168 @@
-"use client"
+"use client";
 
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Badge } from "@/components/ui/badge"
-import { Filter, Truck, Package, ShieldCheck, Heart } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useCart } from "@/contexts/cart-context"
-import { ShoppingCartSheet } from "@/components/shopping-cart"
-import { marketplaceService } from "@/lib/services/marketplace-service"
-import type { Product, Category } from "@/lib/types/marketplace"
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Filter, Truck, Package, ShieldCheck, Heart } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useCartStore } from "@/lib/store/cart-store";
+import { marketplaceService } from "@/lib/services/marketplace-service";
+import type { Product, Category } from "@/lib/types/marketplace";
+import { AddToCartButton } from "@/components/shopping-cart";
+import { CartSummary } from "@/components/cart-summary";
 
 export default function MaterialsPage() {
-  const [priceRange, setPriceRange] = useState([0, 5000])
-  const [materials, setMaterials] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState<string>("all-categories")
-  const [brand, setBrand] = useState<string>("all-brands")
-  const [sortBy, setSortBy] = useState<string>("price-low")
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const { addItem } = useCart()
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [materials, setMaterials] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState<string>("all-categories");
+  const [brand, setBrand] = useState<string>("all-brands");
+  const [sortBy, setSortBy] = useState<string>("price-low");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  // Using Zustand cart store via AddToCartButton component
 
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const categoriesData = await marketplaceService.getCategories()
-        setCategories(categoriesData)
+        const categoriesData = await marketplaceService.getCategories();
+        setCategories(categoriesData);
       } catch (error) {
-        console.error("Error loading categories:", error)
+        console.error("Error loading categories:", error);
       }
     }
-    loadInitialData()
-  }, [])
+    loadInitialData();
+  }, []);
 
   useEffect(() => {
     async function loadProducts() {
-      setLoading(true)
+      setLoading(true);
       try {
         const filters: any = {
           limit: 50,
           minPrice: priceRange[0],
           maxPrice: priceRange[1],
           inStock: true,
-        }
+        };
 
         if (category !== "all-categories") {
-          filters.categoryId = category
+          filters.categoryId = category;
         }
 
         if (searchQuery) {
-          filters.search = searchQuery
+          filters.search = searchQuery;
         }
 
-        const result = await marketplaceService.getProducts(filters)
-        let products = result.products
+        const result = await marketplaceService.getProducts(filters);
+        let products = result.products;
 
         // Filter by brand if selected
         if (brand !== "all-brands") {
-          products = products.filter((product) => product.brand.toLowerCase() === brand.toLowerCase())
+          products = products.filter(
+            (product) => product.brand.toLowerCase() === brand.toLowerCase()
+          );
         }
 
         // Sort products
         switch (sortBy) {
           case "price-low":
             products.sort((a, b) => {
-              const aPrice = a.variants[0]?.price || 0
-              const bPrice = b.variants[0]?.price || 0
-              return aPrice - bPrice
-            })
-            break
+              const aPrice = a.variants[0]?.price || 0;
+              const bPrice = b.variants[0]?.price || 0;
+              return aPrice - bPrice;
+            });
+            break;
           case "price-high":
             products.sort((a, b) => {
-              const aPrice = a.variants[0]?.price || 0
-              const bPrice = b.variants[0]?.price || 0
-              return bPrice - aPrice
-            })
-            break
+              const aPrice = a.variants[0]?.price || 0;
+              const bPrice = b.variants[0]?.price || 0;
+              return bPrice - aPrice;
+            });
+            break;
           case "popular":
             // Keep default order
-            break
+            break;
           case "delivery":
             // Sort by estimated delivery (mock implementation)
-            products.sort((a, b) => a.name.localeCompare(b.name))
-            break
+            products.sort((a, b) => a.name.localeCompare(b.name));
+            break;
         }
 
-        setMaterials(products)
+        setMaterials(products);
       } catch (error) {
-        console.error("Error loading products:", error)
-        setMaterials([])
+        console.error("Error loading products:", error);
+        setMaterials([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadProducts()
-  }, [category, brand, priceRange, sortBy, searchQuery])
+    loadProducts();
+  }, [category, brand, priceRange, sortBy, searchQuery]);
 
   const handleSearch = () => {
     // The search is already handled by the useEffect
-  }
+  };
 
-  const handleAddToCart = (material: Product) => {
-    const defaultVariant = material.variants.find((v) => v.isDefault) || material.variants[0]
-    if (defaultVariant) {
-      addItem(material.id, defaultVariant.id, 1)
-    }
-  }
+  // Cart functionality now handled by AddToCartButton component
 
   const getDeliveryEstimate = (product: Product) => {
     // Mock delivery estimation based on product weight
-    const weight = product.weight || 0
-    if (weight > 50) return "5-7 days"
-    if (weight > 10) return "3-5 days"
-    return "1-3 days"
-  }
+    const weight = product.weight || 0;
+    if (weight > 50) return "5-7 days";
+    if (weight > 10) return "3-5 days";
+    return "1-3 days";
+  };
 
   const getUnit = (product: Product) => {
-    const variant = product.variants[0]
-    if (!variant) return "per item"
+    const variant = product.variants[0];
+    if (!variant) return "per item";
 
     // Extract unit from variant options or product name
-    const weightOption = variant.options.find((opt) => opt.name.toLowerCase() === "weight")
-    if (weightOption) return `per ${weightOption.value}`
+    const weightOption = variant.options.find(
+      (opt) => opt.name.toLowerCase() === "weight"
+    );
+    if (weightOption) return `per ${weightOption.value}`;
 
-    const name = product.name.toLowerCase()
-    if (name.includes("cement") || name.includes("bag")) return "per bag"
-    if (name.includes("steel") || name.includes("bar")) return "per kg"
-    if (name.includes("brick")) return "per piece"
-    if (name.includes("tile")) return "per sq.ft"
-    if (name.includes("paint")) return "per liter"
+    const name = product.name.toLowerCase();
+    if (name.includes("cement") || name.includes("bag")) return "per bag";
+    if (name.includes("steel") || name.includes("bar")) return "per kg";
+    if (name.includes("brick")) return "per piece";
+    if (name.includes("tile")) return "per sq.ft";
+    if (name.includes("paint")) return "per liter";
 
-    return "per item"
-  }
+    return "per item";
+  };
 
   const isInStock = (product: Product) => {
-    return product.variants.some((variant) => variant.inventory.quantity > 0 || variant.inventory.allowBackorder)
-  }
+    return product.variants.some(
+      (variant) =>
+        variant.inventory.quantity > 0 || variant.inventory.allowBackorder
+    );
+  };
 
   const isCertified = (product: Product) => {
-    return product.tags.some((tag) => ["certified", "quality", "iso", "bis"].includes(tag.toLowerCase()))
-  }
+    return product.tags.some((tag) =>
+      ["certified", "quality", "iso", "bis"].includes(tag.toLowerCase())
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -166,7 +183,9 @@ export default function MaterialsPage() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all-categories">All Categories</SelectItem>
+                    <SelectItem value="all-categories">
+                      All Categories
+                    </SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
@@ -196,7 +215,12 @@ export default function MaterialsPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price Range (₹)</label>
-                <Slider value={priceRange} onValueChange={setPriceRange} max={5000} step={100} />
+                <Slider
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  max={5000}
+                  step={100}
+                />
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>₹{priceRange[0]}</span>
                   <span>₹{priceRange[1]}</span>
@@ -209,15 +233,19 @@ export default function MaterialsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="price-low">Price: Low to High</SelectItem>
-                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="price-low">
+                      Price: Low to High
+                    </SelectItem>
+                    <SelectItem value="price-high">
+                      Price: High to Low
+                    </SelectItem>
                     <SelectItem value="popular">Most Popular</SelectItem>
                     <SelectItem value="delivery">Fastest Delivery</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="pt-4 border-t">
-                <ShoppingCartSheet />
+                <CartSummary />
               </div>
             </div>
           </aside>
@@ -244,19 +272,25 @@ export default function MaterialsPage() {
               <div className="text-center py-12">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">No materials found</h3>
-                <p className="text-muted-foreground">Try adjusting your filters or search query</p>
+                <p className="text-muted-foreground">
+                  Try adjusting your filters or search query
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {materials.map((material) => {
-                  const defaultVariant = material.variants.find((v) => v.isDefault) || material.variants[0]
-                  const price = defaultVariant?.price || 0
-                  const comparePrice = defaultVariant?.compareAtPrice
-                  const inStock = isInStock(material)
-                  const certified = isCertified(material)
-                  const delivery = getDeliveryEstimate(material)
-                  const unit = getUnit(material)
-                  const mainImage = material.images.find((img) => img.isMain) || material.images[0]
+                  const defaultVariant =
+                    material.variants.find((v) => v.isDefault) ||
+                    material.variants[0];
+                  const price = defaultVariant?.price || 0;
+                  const comparePrice = defaultVariant?.compareAtPrice;
+                  const inStock = isInStock(material);
+                  const certified = isCertified(material);
+                  const delivery = getDeliveryEstimate(material);
+                  const unit = getUnit(material);
+                  const mainImage =
+                    material.images.find((img) => img.isMain) ||
+                    material.images[0];
 
                   return (
                     <Card key={material.id} className="flex flex-col">
@@ -271,7 +305,9 @@ export default function MaterialsPage() {
                         <CardTitle className="flex justify-between items-start gap-2">
                           <span>{material.name}</span>
                           <Badge variant="secondary">
-                            {categories.find((c) => c.id === material.categoryId)?.name || "Other"}
+                            {categories.find(
+                              (c) => c.id === material.categoryId
+                            )?.name || "Other"}
                           </Badge>
                         </CardTitle>
                         <p className="text-sm text-muted-foreground line-clamp-2">
@@ -280,29 +316,41 @@ export default function MaterialsPage() {
                       </CardHeader>
                       <CardContent className="flex-1 space-y-3">
                         <div className="flex items-center gap-2">
-                          <div className="text-lg font-bold">₹{price.toLocaleString()}</div>
+                          <div className="text-lg font-bold">
+                            ₹{price.toLocaleString()}
+                          </div>
                           {comparePrice && comparePrice > price && (
                             <div className="text-sm text-muted-foreground line-through">
                               ₹{comparePrice.toLocaleString()}
                             </div>
                           )}
-                          <span className="text-sm text-muted-foreground">{unit}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {unit}
+                          </span>
                         </div>
-                        <div className="text-sm text-muted-foreground">Brand: {material.brand}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Brand: {material.brand}
+                        </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Truck className="h-4 w-4" />
                           <span>Delivery: {delivery}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <Package className="h-4 w-4" />
-                          <span className={inStock ? "text-green-600" : "text-red-600"}>
+                          <span
+                            className={
+                              inStock ? "text-green-600" : "text-red-600"
+                            }
+                          >
                             {inStock ? "In Stock" : "Out of Stock"}
                           </span>
                         </div>
                         {certified && (
                           <div className="flex items-center gap-2 text-green-600">
                             <ShieldCheck className="h-4 w-4" />
-                            <span className="text-sm font-medium">Quality Certified</span>
+                            <span className="text-sm font-medium">
+                              Quality Certified
+                            </span>
                           </div>
                         )}
                       </CardContent>
@@ -315,13 +363,43 @@ export default function MaterialsPage() {
                           <Button variant="outline" size="sm">
                             Compare
                           </Button>
-                          <Button size="sm" onClick={() => handleAddToCart(material)} disabled={!inStock}>
-                            Add to Cart
-                          </Button>
+                          <AddToCartButton
+                            product={{
+                              id: material.id,
+                              name: material.name,
+                              price: price,
+                              image: mainImage?.url || "/placeholder.svg",
+                              unit: unit,
+                              vendorId: material.vendorId,
+                              vendorName:
+                                material.vendor?.businessName ||
+                                "Unknown Vendor",
+                              availability: inStock
+                                ? "in_stock"
+                                : "out_of_stock",
+                              minOrderQuantity:
+                                defaultVariant?.minOrderQuantity,
+                              maxOrderQuantity:
+                                defaultVariant?.maxOrderQuantity,
+                              gstRate: material.gstRate,
+                              deliveryCharges: material.deliveryCharges,
+                            }}
+                            variant={
+                              defaultVariant
+                                ? {
+                                    size: defaultVariant.size,
+                                    grade: defaultVariant.grade,
+                                    brand: material.brand,
+                                  }
+                                : undefined
+                            }
+                            quantity={1}
+                            className="size-sm"
+                          />
                         </div>
                       </CardFooter>
                     </Card>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -330,5 +408,5 @@ export default function MaterialsPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

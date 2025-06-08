@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Phone } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Phone, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -99,15 +99,11 @@ export function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <span>+91 98765 43210</span>
+                <span>+91 987** ***10</span>
               </li>
-              <li>
-                <Link
-                  href="mailto:info@buildconnect.in"
-                  className="text-sm text-muted-foreground hover:text-foreground"
-                >
-                  info@buildconnect.in
-                </Link>
+              <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <span>in**@buildconnect.in</span>
               </li>
             </ul>
             <div className="flex space-x-4 mt-4">

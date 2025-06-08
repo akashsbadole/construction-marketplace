@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ContractorPortfolio } from "@/components/contractor-portfolio";
 import { ReviewSystem } from "@/components/review-system";
+import { ContactProtection } from "@/components/contact-protection";
 import {
   StarIcon,
   MapPinIcon,
@@ -75,8 +77,11 @@ const mockContractors = [
         title: "Modern Residential Complex",
         description:
           "A 50-unit residential complex with modern amenities and sustainable design.",
-        images: ["/placeholder.jpg", "/placeholder.jpg"],
-        images360: ["/placeholder.jpg"],
+        images: [
+          "/placeholder.svg?height=400&width=600",
+          "/placeholder.svg?height=400&width=600",
+        ],
+        images360: [], // No 360 images for demo
         projectType: "Residential",
         location: "Gurgaon, Haryana",
         completedAt: "2024-01-15",
@@ -209,8 +214,11 @@ const mockContractors = [
         title: "Luxury Home Interior",
         description:
           "Complete interior design and renovation of a 4BHK luxury apartment.",
-        images: ["/placeholder.jpg", "/placeholder.jpg"],
-        images360: ["/placeholder.jpg"],
+        images: [
+          "/placeholder.svg?height=400&width=600",
+          "/placeholder.svg?height=400&width=600",
+        ],
+        images360: [], // No 360 images for demo
         projectType: "Interior",
         location: "Whitefield, Bangalore",
         completedAt: "2024-02-01",
@@ -447,6 +455,10 @@ export function FeaturedContractors() {
                           </p>
                         </div>
                       </DialogTitle>
+                      <DialogDescription>
+                        View detailed information about this contractor
+                        including portfolio, reviews, and contact details.
+                      </DialogDescription>
                     </DialogHeader>
 
                     {selectedContractor && (
@@ -585,90 +597,78 @@ export function FeaturedContractors() {
                         <TabsContent value="contact" className="space-y-6">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-4">
-                              <h3 className="font-semibold">
-                                Contact Information
-                              </h3>
-
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                  <PhoneIcon className="h-4 w-4 text-muted-foreground" />
-                                  <span>+91 98765 43210</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <MailIcon className="h-4 w-4 text-muted-foreground" />
-                                  <span>
-                                    contact@
-                                    {selectedContractor.businessName
-                                      .toLowerCase()
-                                      .replace(/\s+/g, "")}
-                                    .com
-                                  </span>
-                                </div>
-                                {selectedContractor.website && (
-                                  <div className="flex items-center gap-3">
-                                    <span className="h-4 w-4 text-muted-foreground">
-                                      🌐
-                                    </span>
-                                    <a
-                                      href={selectedContractor.website}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:underline"
-                                    >
-                                      {selectedContractor.website}
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <h4 className="font-medium mb-2">
-                                  Service Areas
-                                </h4>
-                                <div className="space-y-1">
-                                  {selectedContractor.serviceLocations.map(
-                                    (location, index) => (
-                                      <div
-                                        key={index}
-                                        className="text-sm text-muted-foreground"
-                                      >
-                                        {location.city}, {location.state}{" "}
-                                        (within {location.serviceRadius}km)
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
+                              <ContactProtection
+                                contactInfo={{
+                                  phone: "+91 98765 43210",
+                                  email: `contact@${selectedContractor.businessName
+                                    .toLowerCase()
+                                    .replace(/\s+/g, "")}.com`,
+                                  website: selectedContractor.website,
+                                }}
+                                businessName={selectedContractor.businessName}
+                                businessType="contractor"
+                                isVerified={!!selectedContractor.verifiedAt}
+                                onContactRequest={(requestData) => {
+                                  console.log("Contact request:", requestData);
+                                  // Handle contact request - send to backend
+                                }}
+                              />
                             </div>
 
                             <div className="space-y-4">
-                              <h3 className="font-semibold">Business Hours</h3>
-                              <div className="space-y-2 text-sm">
-                                {Object.entries(
-                                  selectedContractor.businessHours
-                                ).map(([day, hours]) => (
-                                  <div
-                                    key={day}
-                                    className="flex justify-between"
-                                  >
-                                    <span className="capitalize font-medium">
-                                      {day}:
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                      {hours.isOpen
-                                        ? `${hours.openTime} - ${hours.closeTime}`
-                                        : "Closed"}
-                                    </span>
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Service Areas</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-2">
+                                    {selectedContractor.serviceLocations.map(
+                                      (location, index) => (
+                                        <div
+                                          key={index}
+                                          className="flex items-center gap-2 text-sm"
+                                        >
+                                          <MapPinIcon className="h-4 w-4 text-muted-foreground" />
+                                          <span>
+                                            {location.city}, {location.state}{" "}
+                                            <span className="text-muted-foreground">
+                                              (within {location.serviceRadius}
+                                              km)
+                                            </span>
+                                          </span>
+                                        </div>
+                                      )
+                                    )}
                                   </div>
-                                ))}
-                              </div>
+                                </CardContent>
+                              </Card>
 
-                              <div className="pt-4">
-                                <Button className="w-full">
-                                  <PhoneIcon className="h-4 w-4 mr-2" />
-                                  Contact Now
-                                </Button>
-                              </div>
+                              <Card>
+                                <CardHeader>
+                                  <CardTitle>Business Hours</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="space-y-2 text-sm">
+                                    {Object.entries(
+                                      selectedContractor.businessHours
+                                    ).map(([day, hours]) => (
+                                      <div
+                                        key={day}
+                                        className="flex justify-between"
+                                      >
+                                        <span className="capitalize font-medium">
+                                          {day}:
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                          {hours.isOpen
+                                            ? `${hours.openTime} - ${hours.closeTime}`
+                                            : "Closed"}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </CardContent>
+                              </Card>
                             </div>
                           </div>
                         </TabsContent>
@@ -676,10 +676,41 @@ export function FeaturedContractors() {
                     )}
                   </DialogContent>
                 </Dialog>
-                <Button>
-                  <PhoneIcon className="h-4 w-4 mr-2" />
-                  Contact
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <PhoneIcon className="h-4 w-4 mr-2" />
+                      Get Contact
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>
+                        Contact {contractor.businessName}
+                      </DialogTitle>
+                      <DialogDescription>
+                        Share your requirement to get connected with this
+                        contractor.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <ContactProtection
+                      contactInfo={{
+                        phone: "+91 98765 43210",
+                        email: `contact@${contractor.businessName
+                          .toLowerCase()
+                          .replace(/\s+/g, "")}.com`,
+                        website: contractor.website,
+                      }}
+                      businessName={contractor.businessName}
+                      businessType="contractor"
+                      isVerified={!!contractor.verifiedAt}
+                      onContactRequest={(requestData) => {
+                        console.log("Contact request:", requestData);
+                        // Handle contact request
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
               </CardFooter>
             </Card>
           ))}

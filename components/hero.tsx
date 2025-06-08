@@ -1,8 +1,9 @@
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { Search, Users, Package, Star, Shield } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Search, Users, Package, Star, Shield } from "lucide-react";
+import { MarketplaceSearch } from "@/components/marketplace-search";
 
 export function Hero() {
   return (
@@ -31,21 +32,18 @@ export function Hero() {
           </h1>
 
           <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-3xl mx-auto">
-            Connect with verified contractors, buy quality materials, and manage your construction projects all in one
-            place. From planning to completion, we've got you covered.
+            Connect with verified contractors, buy quality materials, and manage
+            your construction projects all in one place. From planning to
+            completion, we've got you covered.
           </p>
 
           {/* Search Bar */}
           <div className="mt-10 max-w-2xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search contractors, materials, or services..." className="pl-10 h-12 text-base" />
-              </div>
-              <Button size="lg" className="h-12 px-8">
-                Search
-              </Button>
-            </div>
+            <MarketplaceSearch
+              placeholder="Search contractors, materials, or services..."
+              showFilters={true}
+              className="w-full"
+            />
           </div>
 
           {/* CTA Buttons */}
@@ -71,15 +69,21 @@ export function Hero() {
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">10K+</div>
-              <div className="text-sm text-muted-foreground">Verified Contractors</div>
+              <div className="text-sm text-muted-foreground">
+                Verified Contractors
+              </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">50K+</div>
-              <div className="text-sm text-muted-foreground">Quality Materials</div>
+              <div className="text-sm text-muted-foreground">
+                Quality Materials
+              </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">25K+</div>
-              <div className="text-sm text-muted-foreground">Projects Completed</div>
+              <div className="text-sm text-muted-foreground">
+                Projects Completed
+              </div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">4.8</div>
@@ -92,5 +96,5 @@ export function Hero() {
         </div>
       </div>
     </div>
-  )
+  );
 }

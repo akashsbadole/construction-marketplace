@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  buildconnect-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: buildconnect-marketplace
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./public:/app/public
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=file:./data/buildconnect.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - buildconnect-network
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: buildconnect-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - buildconnect-app
+    networks:
+      - buildconnect-network
+
+networks:
+  buildconnect-network:
+    driver: bridge
+
+volumes:
+  buildconnect-data:
+    driver: local
+  buildconnect-logs:
+    driver: local

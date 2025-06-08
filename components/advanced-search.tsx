@@ -1,16 +1,22 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Slider } from '@/components/ui/slider'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { 
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
   SearchIcon,
   FilterIcon,
   MapPinIcon,
@@ -18,156 +24,216 @@ import {
   TagIcon,
   StarIcon,
   XIcon,
-  SlidersIcon
-} from 'lucide-react'
+  SlidersIcon,
+} from "lucide-react";
 
 export interface SearchFilters {
-  query: string
+  query: string;
   location: {
-    city?: string
-    state?: string
-    radius?: number // in km
-    coordinates?: { lat: number; lng: number }
-  }
+    city?: string;
+    state?: string;
+    radius?: number; // in km
+    coordinates?: { lat: number; lng: number };
+  };
   priceRange: {
-    min: number
-    max: number
-  }
-  categories: string[]
-  availability: 'all' | 'in_stock' | 'out_of_stock'
+    min: number;
+    max: number;
+  };
+  categories: string[];
+  availability: "all" | "in_stock" | "out_of_stock";
   rating: {
-    min: number
-  }
-  sortBy: 'relevance' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'newest'
-  vendors: string[]
-  features: string[]
+    min: number;
+  };
+  sortBy:
+    | "relevance"
+    | "price_low"
+    | "price_high"
+    | "rating"
+    | "distance"
+    | "newest";
+  vendors: string[];
+  features: string[];
 }
 
 interface AdvancedSearchProps {
-  onFiltersChange: (filters: SearchFilters) => void
-  initialFilters?: Partial<SearchFilters>
-  searchType: 'products' | 'contractors' | 'vendors'
+  onFiltersChange: (filters: SearchFilters) => void;
+  initialFilters?: Partial<SearchFilters>;
+  searchType: "products" | "contractors" | "vendors";
 }
 
 const defaultFilters: SearchFilters = {
-  query: '',
+  query: "",
   location: {
-    radius: 25
+    radius: 25,
   },
   priceRange: {
     min: 0,
-    max: 100000
+    max: 100000,
   },
   categories: [],
-  availability: 'all',
+  availability: "all",
   rating: {
-    min: 0
+    min: 0,
   },
-  sortBy: 'relevance',
+  sortBy: "relevance",
   vendors: [],
-  features: []
-}
+  features: [],
+};
 
 const categories = [
-  'Cement', 'Steel', 'Bricks', 'Sand', 'Aggregates', 'Tiles', 'Paint',
-  'Electrical', 'Plumbing', 'Hardware', 'Roofing', 'Insulation', 'Doors & Windows'
-]
+  "Cement",
+  "Steel",
+  "Bricks",
+  "Sand",
+  "Aggregates",
+  "Tiles",
+  "Paint",
+  "Electrical",
+  "Plumbing",
+  "Hardware",
+  "Roofing",
+  "Insulation",
+  "Doors & Windows",
+];
 
 const contractorCategories = [
-  'Residential Construction', 'Commercial Construction', 'Renovation',
-  'Interior Design', 'Electrical Work', 'Plumbing', 'Roofing', 'Painting',
-  'Flooring', 'HVAC', 'Landscaping', 'Structural Work'
-]
+  "Residential Construction",
+  "Commercial Construction",
+  "Renovation",
+  "Interior Design",
+  "Electrical Work",
+  "Plumbing",
+  "Roofing",
+  "Painting",
+  "Flooring",
+  "HVAC",
+  "Landscaping",
+  "Structural Work",
+];
 
 const features = [
-  'Free Delivery', 'Bulk Discount', 'Quality Certified', 'Express Delivery',
-  'Installation Service', 'Warranty Included', 'Return Policy', 'EMI Available'
-]
+  "Free Delivery",
+  "Bulk Discount",
+  "Quality Certified",
+  "Express Delivery",
+  "Installation Service",
+  "Warranty Included",
+  "Return Policy",
+  "EMI Available",
+];
 
 const contractorFeatures = [
-  'Licensed', 'Insured', 'Emergency Service', 'Free Estimate',
-  'Warranty Provided', 'Eco-Friendly', 'Experienced Team', 'Quick Response'
-]
+  "Licensed",
+  "Insured",
+  "Emergency Service",
+  "Free Estimate",
+  "Warranty Provided",
+  "Eco-Friendly",
+  "Experienced Team",
+  "Quick Response",
+];
 
 const sortOptions = {
   products: [
-    { value: 'relevance', label: 'Most Relevant' },
-    { value: 'price_low', label: 'Price: Low to High' },
-    { value: 'price_high', label: 'Price: High to Low' },
-    { value: 'rating', label: 'Highest Rated' },
-    { value: 'newest', label: 'Newest First' }
+    { value: "relevance", label: "Most Relevant" },
+    { value: "price_low", label: "Price: Low to High" },
+    { value: "price_high", label: "Price: High to Low" },
+    { value: "rating", label: "Highest Rated" },
+    { value: "newest", label: "Newest First" },
   ],
   contractors: [
-    { value: 'relevance', label: 'Most Relevant' },
-    { value: 'rating', label: 'Highest Rated' },
-    { value: 'distance', label: 'Nearest First' },
-    { value: 'price_low', label: 'Price: Low to High' },
-    { value: 'newest', label: 'Recently Joined' }
+    { value: "relevance", label: "Most Relevant" },
+    { value: "rating", label: "Highest Rated" },
+    { value: "distance", label: "Nearest First" },
+    { value: "price_low", label: "Price: Low to High" },
+    { value: "newest", label: "Recently Joined" },
   ],
   vendors: [
-    { value: 'relevance', label: 'Most Relevant' },
-    { value: 'rating', label: 'Highest Rated' },
-    { value: 'distance', label: 'Nearest First' },
-    { value: 'newest', label: 'Recently Joined' }
-  ]
-}
+    { value: "relevance", label: "Most Relevant" },
+    { value: "rating", label: "Highest Rated" },
+    { value: "distance", label: "Nearest First" },
+    { value: "newest", label: "Recently Joined" },
+  ],
+};
 
-export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: AdvancedSearchProps) {
+export function AdvancedSearch({
+  onFiltersChange,
+  initialFilters,
+  searchType,
+}: AdvancedSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     ...defaultFilters,
-    ...initialFilters
-  })
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [activeFiltersCount, setActiveFiltersCount] = useState(0)
+    ...initialFilters,
+  });
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeFiltersCount, setActiveFiltersCount] = useState(0);
 
   // Update filters and notify parent
   const updateFilters = (newFilters: Partial<SearchFilters>) => {
-    const updatedFilters = { ...filters, ...newFilters }
-    setFilters(updatedFilters)
-    onFiltersChange(updatedFilters)
-  }
+    const updatedFilters = { ...filters, ...newFilters };
+    setFilters(updatedFilters);
+    onFiltersChange(updatedFilters);
+
+    // Trigger search when filters change
+    if (updatedFilters.query) {
+      const searchParams = new URLSearchParams({
+        q: updatedFilters.query,
+        type: searchType,
+        category: updatedFilters.categories.join(","),
+        rating: updatedFilters.rating.min.toString(),
+        sort: updatedFilters.sortBy,
+      });
+
+      // Navigate to search results if query exists
+      if (typeof window !== "undefined") {
+        window.location.href = `/search?${searchParams.toString()}`;
+      }
+    }
+  };
 
   // Count active filters
   useEffect(() => {
-    let count = 0
-    if (filters.query) count++
-    if (filters.location.city) count++
-    if (filters.categories.length > 0) count++
-    if (filters.priceRange.min > 0 || filters.priceRange.max < 100000) count++
-    if (filters.availability !== 'all') count++
-    if (filters.rating.min > 0) count++
-    if (filters.vendors.length > 0) count++
-    if (filters.features.length > 0) count++
-    
-    setActiveFiltersCount(count)
-  }, [filters])
+    let count = 0;
+    if (filters.query) count++;
+    if (filters.location.city) count++;
+    if (filters.categories.length > 0) count++;
+    if (filters.priceRange.min > 0 || filters.priceRange.max < 100000) count++;
+    if (filters.availability !== "all") count++;
+    if (filters.rating.min > 0) count++;
+    if (filters.vendors.length > 0) count++;
+    if (filters.features.length > 0) count++;
+
+    setActiveFiltersCount(count);
+  }, [filters]);
 
   // Clear all filters
   const clearFilters = () => {
-    setFilters(defaultFilters)
-    onFiltersChange(defaultFilters)
-  }
+    setFilters(defaultFilters);
+    onFiltersChange(defaultFilters);
+  };
 
   // Toggle category
   const toggleCategory = (category: string) => {
     const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter(c => c !== category)
-      : [...filters.categories, category]
-    
-    updateFilters({ categories: newCategories })
-  }
+      ? filters.categories.filter((c) => c !== category)
+      : [...filters.categories, category];
+
+    updateFilters({ categories: newCategories });
+  };
 
   // Toggle feature
   const toggleFeature = (feature: string) => {
     const newFeatures = filters.features.includes(feature)
-      ? filters.features.filter(f => f !== feature)
-      : [...filters.features, feature]
-    
-    updateFilters({ features: newFeatures })
-  }
+      ? filters.features.filter((f) => f !== feature)
+      : [...filters.features, feature];
 
-  const relevantCategories = searchType === 'contractors' ? contractorCategories : categories
-  const relevantFeatures = searchType === 'contractors' ? contractorFeatures : features
+    updateFilters({ features: newFeatures });
+  };
+
+  const relevantCategories =
+    searchType === "contractors" ? contractorCategories : categories;
+  const relevantFeatures =
+    searchType === "contractors" ? contractorFeatures : features;
 
   return (
     <Card className="w-full">
@@ -192,7 +258,7 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
               onClick={() => setIsExpanded(!isExpanded)}
             >
               <SlidersIcon className="h-4 w-4 mr-2" />
-              {isExpanded ? 'Less' : 'More'} Filters
+              {isExpanded ? "Less" : "More"} Filters
             </Button>
           </div>
         </div>
@@ -223,28 +289,36 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
               placeholder="City"
-              value={filters.location.city || ''}
-              onChange={(e) => updateFilters({ 
-                location: { ...filters.location, city: e.target.value }
-              })}
+              value={filters.location.city || ""}
+              onChange={(e) =>
+                updateFilters({
+                  location: { ...filters.location, city: e.target.value },
+                })
+              }
             />
             <Input
               placeholder="State"
-              value={filters.location.state || ''}
-              onChange={(e) => updateFilters({ 
-                location: { ...filters.location, state: e.target.value }
-              })}
+              value={filters.location.state || ""}
+              onChange={(e) =>
+                updateFilters({
+                  location: { ...filters.location, state: e.target.value },
+                })
+              }
             />
           </div>
-          
+
           {filters.location.city && (
             <div className="space-y-2">
-              <Label className="text-sm">Search Radius: {filters.location.radius}km</Label>
+              <Label className="text-sm">
+                Search Radius: {filters.location.radius}km
+              </Label>
               <Slider
                 value={[filters.location.radius || 25]}
-                onValueChange={([value]) => updateFilters({ 
-                  location: { ...filters.location, radius: value }
-                })}
+                onValueChange={([value]) =>
+                  updateFilters({
+                    location: { ...filters.location, radius: value },
+                  })
+                }
                 max={100}
                 min={5}
                 step={5}
@@ -279,7 +353,7 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
             <Separator />
 
             {/* Price Range */}
-            {searchType !== 'vendors' && (
+            {searchType !== "vendors" && (
               <div className="space-y-3">
                 <Label className="flex items-center gap-2">
                   <IndianRupeeIcon className="h-4 w-4" />
@@ -292,9 +366,14 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
                       type="number"
                       placeholder="0"
                       value={filters.priceRange.min}
-                      onChange={(e) => updateFilters({
-                        priceRange: { ...filters.priceRange, min: Number(e.target.value) }
-                      })}
+                      onChange={(e) =>
+                        updateFilters({
+                          priceRange: {
+                            ...filters.priceRange,
+                            min: Number(e.target.value),
+                          },
+                        })
+                      }
                     />
                   </div>
                   <div>
@@ -303,9 +382,14 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
                       type="number"
                       placeholder="100000"
                       value={filters.priceRange.max}
-                      onChange={(e) => updateFilters({
-                        priceRange: { ...filters.priceRange, max: Number(e.target.value) }
-                      })}
+                      onChange={(e) =>
+                        updateFilters({
+                          priceRange: {
+                            ...filters.priceRange,
+                            max: Number(e.target.value),
+                          },
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -326,7 +410,10 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
                       checked={filters.categories.includes(category)}
                       onCheckedChange={() => toggleCategory(category)}
                     />
-                    <Label htmlFor={category} className="text-sm cursor-pointer">
+                    <Label
+                      htmlFor={category}
+                      className="text-sm cursor-pointer"
+                    >
                       {category}
                     </Label>
                   </div>
@@ -335,12 +422,14 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
             </div>
 
             {/* Availability */}
-            {searchType === 'products' && (
+            {searchType === "products" && (
               <div className="space-y-3">
                 <Label>Availability</Label>
                 <Select
                   value={filters.availability}
-                  onValueChange={(value: any) => updateFilters({ availability: value })}
+                  onValueChange={(value: any) =>
+                    updateFilters({ availability: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -363,9 +452,11 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
               <div className="space-y-2">
                 <Slider
                   value={[filters.rating.min]}
-                  onValueChange={([value]) => updateFilters({ 
-                    rating: { min: value }
-                  })}
+                  onValueChange={([value]) =>
+                    updateFilters({
+                      rating: { min: value },
+                    })
+                  }
                   max={5}
                   min={0}
                   step={0.5}
@@ -407,38 +498,50 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
               {filters.query && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   Search: {filters.query}
-                  <XIcon 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilters({ query: '' })}
+                  <XIcon
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() => updateFilters({ query: "" })}
                   />
                 </Badge>
               )}
-              
+
               {filters.location.city && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   Location: {filters.location.city}
-                  <XIcon 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => updateFilters({ location: { ...filters.location, city: '' } })}
+                  <XIcon
+                    className="h-3 w-3 cursor-pointer"
+                    onClick={() =>
+                      updateFilters({
+                        location: { ...filters.location, city: "" },
+                      })
+                    }
                   />
                 </Badge>
               )}
-              
+
               {filters.categories.map((category) => (
-                <Badge key={category} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={category}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {category}
-                  <XIcon 
-                    className="h-3 w-3 cursor-pointer" 
+                  <XIcon
+                    className="h-3 w-3 cursor-pointer"
                     onClick={() => toggleCategory(category)}
                   />
                 </Badge>
               ))}
-              
+
               {filters.features.map((feature) => (
-                <Badge key={feature} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={feature}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {feature}
-                  <XIcon 
-                    className="h-3 w-3 cursor-pointer" 
+                  <XIcon
+                    className="h-3 w-3 cursor-pointer"
                     onClick={() => toggleFeature(feature)}
                   />
                 </Badge>
@@ -448,5 +551,5 @@ export function AdvancedSearch({ onFiltersChange, initialFilters, searchType }: 
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

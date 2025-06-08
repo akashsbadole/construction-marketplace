@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -71,6 +72,7 @@ export function ShoppingCart() {
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="relative">
           <ShoppingCartIcon className="h-4 w-4" />
+          <span className="hidden md:inline ml-2">Cart</span>
           {summary.totalItems > 0 && (
             <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
               {summary.totalItems}
@@ -85,6 +87,9 @@ export function ShoppingCart() {
             <ShoppingBagIcon className="h-5 w-5" />
             Shopping Cart ({summary.totalItems} items)
           </SheetTitle>
+          <SheetDescription>
+            Review and manage items in your shopping cart before checkout
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-col h-full">

@@ -4,6 +4,7 @@ import "./globals.css";
 import type React from "react";
 import { AuthProvider } from "@/contexts/auth-context";
 import { CartProvider } from "@/contexts/cart-context";
+import { LocationProvider } from "@/lib/contexts/location-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +24,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
         <AuthProvider>
-          <CartProvider>{children}</CartProvider>
+          <LocationProvider>
+            <CartProvider>{children}</CartProvider>
+          </LocationProvider>
         </AuthProvider>
       </body>
     </html>

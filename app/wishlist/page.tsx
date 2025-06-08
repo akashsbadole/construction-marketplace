@@ -1,11 +1,18 @@
-"use client"
+"use client";
 
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Heart, ShoppingCart, Trash2, Share } from "lucide-react"
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Heart, ShoppingCart, Trash2, Share } from "lucide-react";
+import { AddToCartButton } from "@/components/shopping-cart";
 
 const wishlistItems = [
   {
@@ -41,16 +48,14 @@ const wishlistItems = [
     inStock: false,
     savedDate: "2024-01-05",
   },
-]
+];
 
 export default function WishlistPage() {
   const removeFromWishlist = (id: string) => {
-    console.log("Removing from wishlist:", id)
-  }
+    console.log("Removing from wishlist:", id);
+  };
 
-  const addToCart = (item: any) => {
-    console.log("Adding to cart:", item)
-  }
+  // Cart functionality now handled by AddToCartButton component
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -60,7 +65,9 @@ export default function WishlistPage() {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold">My Wishlist</h1>
-              <p className="text-muted-foreground">Save items you're interested in for later</p>
+              <p className="text-muted-foreground">
+                Save items you're interested in for later
+              </p>
             </div>
             <Button variant="outline">
               <Share className="h-4 w-4 mr-2" />
@@ -71,8 +78,12 @@ export default function WishlistPage() {
           {wishlistItems.length === 0 ? (
             <div className="text-center py-16">
               <Heart className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Your wishlist is empty</h2>
-              <p className="text-muted-foreground mb-6">Start adding items you love to your wishlist</p>
+              <h2 className="text-xl font-semibold mb-2">
+                Your wishlist is empty
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Start adding items you love to your wishlist
+              </p>
               <Button>Browse Materials</Button>
             </div>
           ) : (
@@ -103,25 +114,54 @@ export default function WishlistPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Badge variant="secondary">{item.category}</Badge>
-                        <span className={`text-sm ${item.inStock ? "text-green-600" : "text-red-600"}`}>
+                        <span
+                          className={`text-sm ${
+                            item.inStock ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
                           {item.inStock ? "In Stock" : "Out of Stock"}
                         </span>
                       </div>
                       <div className="text-lg font-bold">
-                        ₹{item.price} <span className="text-sm font-normal text-muted-foreground">{item.unit}</span>
+                        ₹{item.price}{" "}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {item.unit}
+                        </span>
                       </div>
-                      <div className="text-sm text-muted-foreground">Brand: {item.brand}</div>
-                      <div className="text-xs text-muted-foreground">Saved on {item.savedDate}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Brand: {item.brand}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Saved on {item.savedDate}
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex gap-2">
-                    <Button variant="outline" className="flex-1" disabled={!item.inStock}>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      disabled={!item.inStock}
+                    >
                       View Details
                     </Button>
-                    <Button className="flex-1" disabled={!item.inStock} onClick={() => addToCart(item)}>
-                      <ShoppingCart className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </Button>
+                    <AddToCartButton
+                      product={{
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image,
+                        unit: item.unit,
+                        vendorId: "vendor-1", // Default vendor for wishlist items
+                        vendorName: item.brand,
+                        availability: item.inStock
+                          ? "in_stock"
+                          : "out_of_stock",
+                        gstRate: 18,
+                        deliveryCharges: 0,
+                      }}
+                      quantity={1}
+                      className="flex-1"
+                    />
                   </CardFooter>
                 </Card>
               ))}
@@ -131,5 +171,5 @@ export default function WishlistPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
