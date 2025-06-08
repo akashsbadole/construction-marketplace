@@ -1,0 +1,347 @@
+# Scalable BuildConnect Chat System
+# Production-ready Docker Compose configuration
+
+version: '3.8'
+
+services:
+  # Load Balancer (Nginx)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - chat-app-1
+      - chat-app-2
+      - chat-app-3
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  # Chat Application Instances (Horizontal Scaling)
+  chat-app-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis-cluster:6379
+      - DATABASE_URL=postgresql://postgres:password@postgres-master:5432/buildconnect
+      - DATABASE_READ_URL=postgresql://postgres:password@postgres-replica:5432/buildconnect
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVER_ID=chat-app-1
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  chat-app-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis-cluster:6379
+      - DATABASE_URL=postgresql://postgres:password@postgres-master:5432/buildconnect
+      - DATABASE_READ_URL=postgresql://postgres:password@postgres-replica:5432/buildconnect
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVER_ID=chat-app-2
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  chat-app-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis-cluster:6379
+      - DATABASE_URL=postgresql://postgres:password@postgres-master:5432/buildconnect
+      - DATABASE_READ_URL=postgresql://postgres:password@postgres-replica:5432/buildconnect
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVER_ID=chat-app-3
+    depends_on:
+      - postgres-master
+      - redis-cluster
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # PostgreSQL Master (Write Operations)
+  postgres-master:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=buildconnect
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_REPLICATION_MODE=master
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=replicator_password
+    volumes:
+      - postgres_master_data:/var/lib/postgresql/data
+      - ./database/chat-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/indexes.sql:/docker-entrypoint-initdb.d/02-indexes.sql
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "5432:5432"
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # PostgreSQL Replica (Read Operations)
+  postgres-replica:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_MASTER_SERVICE=postgres-master
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_REPLICATION_USER=replicator
+      - POSTGRES_REPLICATION_PASSWORD=replicator_password
+      - POSTGRES_MASTER_PORT_NUMBER=5432
+    depends_on:
+      - postgres-master
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Redis Cluster for Caching and Pub/Sub
+  redis-cluster:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Redis Sentinel for High Availability
+  redis-sentinel:
+    image: redis:7-alpine
+    command: redis-sentinel /etc/redis/sentinel.conf
+    volumes:
+      - ./redis/sentinel.conf:/etc/redis/sentinel.conf
+    depends_on:
+      - redis-cluster
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  # Message Queue (Apache Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Message Queue Consumer
+  message-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.processor
+    environment:
+      - NODE_ENV=production
+      - KAFKA_BROKERS=kafka:9092
+      - DATABASE_URL=postgresql://postgres:password@postgres-master:5432/buildconnect
+      - REDIS_URL=redis://redis-cluster:6379
+    depends_on:
+      - kafka
+      - postgres-master
+      - redis-cluster
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # Monitoring and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  # Log Aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    volumes:
+      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  # File Storage (MinIO for S3-compatible storage)
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+  # Health Check Service
+  health-check:
+    build:
+      context: .
+      dockerfile: Dockerfile.healthcheck
+    environment:
+      - SERVICES_TO_CHECK=chat-app-1:3000,chat-app-2:3000,chat-app-3:3000,postgres-master:5432,redis-cluster:6379
+    depends_on:
+      - chat-app-1
+      - chat-app-2
+      - chat-app-3
+    networks:
+      - buildconnect-network
+    restart: unless-stopped
+
+volumes:
+  postgres_master_data:
+    driver: local
+  redis_data:
+    driver: local
+  kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  buildconnect-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

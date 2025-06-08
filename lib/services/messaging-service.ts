@@ -1,101 +1,155 @@
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from "@/lib/supabase/client";
 
-export type MessageType = 'text' | 'image' | 'file' | 'system'
-export type NotificationType = 'order' | 'payment' | 'kyc' | 'message' | 'project' | 'system'
+export type MessageType = "text" | "image" | "file" | "system";
+export type NotificationType =
+  | "order"
+  | "payment"
+  | "kyc"
+  | "message"
+  | "project"
+  | "system";
 
 export interface Conversation {
-  id: string
-  participants: string[] // Array of user IDs
-  type: 'direct' | 'group' | 'support'
-  title?: string
-  last_message_at: string
-  created_at: string
-  updated_at: string
-  unread_count?: number
-  last_message?: Message
+  id: string;
+  participants: string[]; // Array of user IDs
+  type: "direct" | "group" | "support";
+  title?: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+  unread_count?: number;
+  last_message?: Message;
 }
 
 export interface Message {
-  id: string
-  conversation_id: string
-  sender_id: string
-  message_type: MessageType
-  content: string
-  attachments: any[]
-  metadata: Record<string, any>
-  is_read: boolean
-  read_at?: string
-  created_at: string
-  updated_at: string
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  parent_message_id?: string;
+  message_type: MessageType;
+  content: string;
+  attachments: any[];
+  metadata: Record<string, any>;
+  is_edited: boolean;
+  edited_at?: string;
+  is_deleted: boolean;
+  deleted_at?: string;
+  created_at: string;
+  updated_at: string;
   sender?: {
-    id: string
-    first_name: string
-    last_name: string
-    avatar_url?: string
-  }
+    id: string;
+    first_name: string;
+    last_name: string;
+    avatar_url?: string;
+  };
+  reactions?: MessageReaction[];
+  read_by?: MessageRead[];
+  reply_to?: Message;
+}
+
+export interface MessageReaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+  user?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface MessageRead {
+  id: string;
+  message_id: string;
+  user_id: string;
+  read_at: string;
+  user?: {
+    id: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface ChatSettings {
+  id: string;
+  user_id: string;
+  notifications_enabled: boolean;
+  sound_enabled: boolean;
+  desktop_notifications: boolean;
+  email_notifications: boolean;
+  theme: "light" | "dark" | "auto";
+  language: string;
+  timezone: string;
 }
 
 export interface Notification {
-  id: string
-  user_id: string
-  type: NotificationType
-  title: string
-  message: string
-  data: Record<string, any>
-  is_read: boolean
-  read_at?: string
-  created_at: string
+  id: string;
+  user_id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data: Record<string, any>;
+  is_read: boolean;
+  read_at?: string;
+  created_at: string;
 }
 
 export interface SendMessageRequest {
-  conversation_id: string
-  content: string
-  message_type?: MessageType
-  attachments?: File[]
-  metadata?: Record<string, any>
+  conversation_id: string;
+  content: string;
+  message_type?: MessageType;
+  attachments?: File[];
+  metadata?: Record<string, any>;
 }
 
 class MessagingService {
   // Create or get conversation between users
-  async getOrCreateConversation(participantIds: string[]): Promise<Conversation> {
+  async getOrCreateConversation(
+    participantIds: string[]
+  ): Promise<Conversation> {
     try {
       // Sort participant IDs for consistent lookup
-      const sortedParticipants = [...participantIds].sort()
-      
+      const sortedParticipants = [...participantIds].sort();
+
       // Try to find existing conversation
       const { data: existingConversations, error: searchError } = await supabase
-        .from('conversations')
-        .select('*')
-        .contains('participants', sortedParticipants)
-        .eq('type', 'direct')
+        .from("conversations")
+        .select("*")
+        .contains("participants", sortedParticipants)
+        .eq("type", "direct");
 
-      if (searchError) throw searchError
+      if (searchError) throw searchError;
 
       // Check if we have an exact match
-      const exactMatch = existingConversations?.find(conv => 
-        conv.participants.length === sortedParticipants.length &&
-        conv.participants.every((id: string) => sortedParticipants.includes(id))
-      )
+      const exactMatch = existingConversations?.find(
+        (conv) =>
+          conv.participants.length === sortedParticipants.length &&
+          conv.participants.every((id: string) =>
+            sortedParticipants.includes(id)
+          )
+      );
 
       if (exactMatch) {
-        return exactMatch
+        return exactMatch;
       }
 
       // Create new conversation
       const { data: newConversation, error: createError } = await supabase
-        .from('conversations')
+        .from("conversations")
         .insert({
           participants: sortedParticipants,
-          type: 'direct'
+          type: "direct",
         })
         .select()
-        .single()
+        .single();
 
-      if (createError) throw createError
-      return newConversation
+      if (createError) throw createError;
+      return newConversation;
     } catch (error) {
-      console.error('Error getting/creating conversation:', error)
-      throw new Error('Failed to create conversation')
+      console.error("Error getting/creating conversation:", error);
+      throw new Error("Failed to create conversation");
     }
   }
 
@@ -103,8 +157,9 @@ class MessagingService {
   async getUserConversations(userId: string): Promise<Conversation[]> {
     try {
       const { data, error } = await supabase
-        .from('conversations')
-        .select(`
+        .from("conversations")
+        .select(
+          `
           *,
           messages!inner(
             id,
@@ -115,209 +170,242 @@ class MessagingService {
             is_read,
             sender:users!sender_id(id, first_name, last_name, avatar_url)
           )
-        `)
-        .contains('participants', [userId])
-        .order('last_message_at', { ascending: false })
+        `
+        )
+        .contains("participants", [userId])
+        .order("last_message_at", { ascending: false });
 
-      if (error) throw error
+      if (error) throw error;
 
       // Process conversations to add unread count and last message
-      const conversations = data?.map(conv => {
-        const messages = conv.messages || []
-        const lastMessage = messages.length > 0 ? messages[0] : null
-        const unreadCount = messages.filter((msg: any) => 
-          msg.sender_id !== userId && !msg.is_read
-        ).length
+      const conversations =
+        data?.map((conv) => {
+          const messages = conv.messages || [];
+          const lastMessage = messages.length > 0 ? messages[0] : null;
+          const unreadCount = messages.filter(
+            (msg: any) => msg.sender_id !== userId && !msg.is_read
+          ).length;
 
-        return {
-          ...conv,
-          last_message: lastMessage,
-          unread_count: unreadCount
-        }
-      }) || []
+          return {
+            ...conv,
+            last_message: lastMessage,
+            unread_count: unreadCount,
+          };
+        }) || [];
 
-      return conversations
+      return conversations;
     } catch (error) {
-      console.error('Error fetching conversations:', error)
-      return []
+      console.error("Error fetching conversations:", error);
+      return [];
     }
   }
 
   // Get messages for a conversation
-  async getConversationMessages(conversationId: string, limit = 50, offset = 0): Promise<Message[]> {
+  async getConversationMessages(
+    conversationId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<Message[]> {
     try {
       const { data, error } = await supabase
-        .from('messages')
-        .select(`
+        .from("messages")
+        .select(
+          `
           *,
           sender:users!sender_id(id, first_name, last_name, avatar_url)
-        `)
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
+        `
+        )
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
 
-      if (error) throw error
-      return data || []
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching messages:', error)
-      return []
+      console.error("Error fetching messages:", error);
+      return [];
     }
   }
 
   // Send message
-  async sendMessage(senderId: string, request: SendMessageRequest): Promise<Message> {
+  async sendMessage(
+    senderId: string,
+    request: SendMessageRequest
+  ): Promise<Message> {
     try {
-      let attachmentUrls: string[] = []
+      let attachmentUrls: string[] = [];
 
       // Upload attachments if any
       if (request.attachments && request.attachments.length > 0) {
-        attachmentUrls = await this.uploadAttachments(request.attachments, senderId)
+        attachmentUrls = await this.uploadAttachments(
+          request.attachments,
+          senderId
+        );
       }
 
       // Create message
       const { data: message, error: messageError } = await supabase
-        .from('messages')
+        .from("messages")
         .insert({
           conversation_id: request.conversation_id,
           sender_id: senderId,
-          message_type: request.message_type || 'text',
+          message_type: request.message_type || "text",
           content: request.content,
           attachments: attachmentUrls,
-          metadata: request.metadata || {}
+          metadata: request.metadata || {},
         })
-        .select(`
+        .select(
+          `
           *,
           sender:users!sender_id(id, first_name, last_name, avatar_url)
-        `)
-        .single()
+        `
+        )
+        .single();
 
-      if (messageError) throw messageError
+      if (messageError) throw messageError;
 
       // Update conversation's last_message_at
       await supabase
-        .from('conversations')
+        .from("conversations")
         .update({ last_message_at: new Date().toISOString() })
-        .eq('id', request.conversation_id)
+        .eq("id", request.conversation_id);
 
       // Send notifications to other participants
-      await this.notifyParticipants(request.conversation_id, senderId, message)
+      await this.notifyParticipants(request.conversation_id, senderId, message);
 
-      return message
+      return message;
     } catch (error) {
-      console.error('Error sending message:', error)
-      throw new Error('Failed to send message')
+      console.error("Error sending message:", error);
+      throw new Error("Failed to send message");
     }
   }
 
   // Upload attachments
-  private async uploadAttachments(files: File[], userId: string): Promise<string[]> {
+  private async uploadAttachments(
+    files: File[],
+    userId: string
+  ): Promise<string[]> {
     const uploadPromises = files.map(async (file) => {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}/messages/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`
-      
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${userId}/messages/${Date.now()}-${Math.random()
+        .toString(36)
+        .substr(2, 9)}.${fileExt}`;
+
       const { data, error } = await supabase.storage
-        .from('message-attachments')
-        .upload(fileName, file)
+        .from("message-attachments")
+        .upload(fileName, file);
 
-      if (error) throw error
+      if (error) throw error;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('message-attachments')
-        .getPublicUrl(fileName)
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("message-attachments").getPublicUrl(fileName);
 
       return {
         url: publicUrl,
         name: file.name,
         size: file.size,
-        type: file.type
-      }
-    })
+        type: file.type,
+      };
+    });
 
-    return Promise.all(uploadPromises)
+    return Promise.all(uploadPromises);
   }
 
   // Mark messages as read
-  async markMessagesAsRead(conversationId: string, userId: string): Promise<boolean> {
+  async markMessagesAsRead(
+    conversationId: string,
+    userId: string
+  ): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('messages')
-        .update({ 
+        .from("messages")
+        .update({
           is_read: true,
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
-        .eq('conversation_id', conversationId)
-        .neq('sender_id', userId)
-        .eq('is_read', false)
+        .eq("conversation_id", conversationId)
+        .neq("sender_id", userId)
+        .eq("is_read", false);
 
-      if (error) throw error
-      return true
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error marking messages as read:', error)
-      return false
+      console.error("Error marking messages as read:", error);
+      return false;
     }
   }
 
   // Notify participants about new message
-  private async notifyParticipants(conversationId: string, senderId: string, message: Message): Promise<void> {
+  private async notifyParticipants(
+    conversationId: string,
+    senderId: string,
+    message: Message
+  ): Promise<void> {
     try {
       // Get conversation participants
       const { data: conversation } = await supabase
-        .from('conversations')
-        .select('participants')
-        .eq('id', conversationId)
-        .single()
+        .from("conversations")
+        .select("participants")
+        .eq("id", conversationId)
+        .single();
 
-      if (!conversation) return
+      if (!conversation) return;
 
       // Get sender info
       const { data: sender } = await supabase
-        .from('users')
-        .select('first_name, last_name')
-        .eq('id', senderId)
-        .single()
+        .from("users")
+        .select("first_name, last_name")
+        .eq("id", senderId)
+        .single();
 
-      const senderName = sender ? `${sender.first_name} ${sender.last_name}` : 'Someone'
+      const senderName = sender
+        ? `${sender.first_name} ${sender.last_name}`
+        : "Someone";
 
       // Create notifications for other participants
       const notifications = conversation.participants
         .filter((id: string) => id !== senderId)
         .map((userId: string) => ({
           user_id: userId,
-          type: 'message' as NotificationType,
+          type: "message" as NotificationType,
           title: `New message from ${senderName}`,
-          message: message.content.substring(0, 100) + (message.content.length > 100 ? '...' : ''),
+          message:
+            message.content.substring(0, 100) +
+            (message.content.length > 100 ? "..." : ""),
           data: {
             conversation_id: conversationId,
             message_id: message.id,
-            sender_id: senderId
-          }
-        }))
+            sender_id: senderId,
+          },
+        }));
 
       if (notifications.length > 0) {
-        await supabase
-          .from('notifications')
-          .insert(notifications)
+        await supabase.from("notifications").insert(notifications);
       }
     } catch (error) {
-      console.error('Error notifying participants:', error)
+      console.error("Error notifying participants:", error);
     }
   }
 
   // Get user notifications
-  async getUserNotifications(userId: string, limit = 50): Promise<Notification[]> {
+  async getUserNotifications(
+    userId: string,
+    limit = 50
+  ): Promise<Notification[]> {
     try {
       const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(limit)
+        .from("notifications")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(limit);
 
-      if (error) throw error
-      return data || []
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error fetching notifications:', error)
-      return []
+      console.error("Error fetching notifications:", error);
+      return [];
     }
   }
 
@@ -325,18 +413,18 @@ class MessagingService {
   async markNotificationAsRead(notificationId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('notifications')
-        .update({ 
+        .from("notifications")
+        .update({
           is_read: true,
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
-        .eq('id', notificationId)
+        .eq("id", notificationId);
 
-      if (error) throw error
-      return true
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error marking notification as read:', error)
-      return false
+      console.error("Error marking notification as read:", error);
+      return false;
     }
   }
 
@@ -349,87 +437,93 @@ class MessagingService {
     data: Record<string, any> = {}
   ): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .insert({
-          user_id: userId,
-          type,
-          title,
-          message,
-          data
-        })
+      const { error } = await supabase.from("notifications").insert({
+        user_id: userId,
+        type,
+        title,
+        message,
+        data,
+      });
 
-      if (error) throw error
-      return true
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error creating notification:', error)
-      return false
+      console.error("Error creating notification:", error);
+      return false;
     }
   }
 
   // Subscribe to real-time messages for a conversation
-  subscribeToConversation(conversationId: string, onMessage: (message: Message) => void) {
+  subscribeToConversation(
+    conversationId: string,
+    onMessage: (message: Message) => void
+  ) {
     return supabase
       .channel(`conversation:${conversationId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
           // Fetch the complete message with sender info
           const { data: message } = await supabase
-            .from('messages')
-            .select(`
+            .from("messages")
+            .select(
+              `
               *,
               sender:users!sender_id(id, first_name, last_name, avatar_url)
-            `)
-            .eq('id', payload.new.id)
-            .single()
+            `
+            )
+            .eq("id", payload.new.id)
+            .single();
 
           if (message) {
-            onMessage(message)
+            onMessage(message);
           }
         }
       )
-      .subscribe()
+      .subscribe();
   }
 
   // Subscribe to real-time notifications
-  subscribeToNotifications(userId: string, onNotification: (notification: Notification) => void) {
+  subscribeToNotifications(
+    userId: string,
+    onNotification: (notification: Notification) => void
+  ) {
     return supabase
       .channel(`notifications:${userId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          onNotification(payload.new as Notification)
+          onNotification(payload.new as Notification);
         }
       )
-      .subscribe()
+      .subscribe();
   }
 
   // Delete conversation
   async deleteConversation(conversationId: string): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('conversations')
+        .from("conversations")
         .delete()
-        .eq('id', conversationId)
+        .eq("id", conversationId);
 
-      if (error) throw error
-      return true
+      if (error) throw error;
+      return true;
     } catch (error) {
-      console.error('Error deleting conversation:', error)
-      return false
+      console.error("Error deleting conversation:", error);
+      return false;
     }
   }
 
@@ -438,33 +532,220 @@ class MessagingService {
     try {
       // Get user's conversations first
       const { data: conversations } = await supabase
-        .from('conversations')
-        .select('id')
-        .contains('participants', [userId])
+        .from("conversations")
+        .select("id")
+        .contains("participants", [userId]);
 
-      if (!conversations) return []
+      if (!conversations) return [];
 
-      const conversationIds = conversations.map(c => c.id)
+      const conversationIds = conversations.map((c) => c.id);
 
       // Search messages in user's conversations
       const { data, error } = await supabase
-        .from('messages')
-        .select(`
+        .from("messages")
+        .select(
+          `
           *,
           sender:users!sender_id(id, first_name, last_name, avatar_url)
-        `)
-        .in('conversation_id', conversationIds)
-        .ilike('content', `%${query}%`)
-        .order('created_at', { ascending: false })
-        .limit(50)
+        `
+        )
+        .in("conversation_id", conversationIds)
+        .ilike("content", `%${query}%`)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-      if (error) throw error
-      return data || []
+      if (error) throw error;
+      return data || [];
     } catch (error) {
-      console.error('Error searching messages:', error)
-      return []
+      console.error("Error searching messages:", error);
+      return [];
+    }
+  }
+
+  // Add message reaction
+  async addReaction(
+    messageId: string,
+    userId: string,
+    emoji: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase.from("message_reactions").insert({
+        message_id: messageId,
+        user_id: userId,
+        emoji: emoji,
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error adding reaction:", error);
+      return false;
+    }
+  }
+
+  // Remove message reaction
+  async removeReaction(
+    messageId: string,
+    userId: string,
+    emoji: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", userId)
+        .eq("emoji", emoji);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error removing reaction:", error);
+      return false;
+    }
+  }
+
+  // Get message reactions
+  async getMessageReactions(messageId: string): Promise<MessageReaction[]> {
+    try {
+      const { data, error } = await supabase
+        .from("message_reactions")
+        .select(
+          `
+          *,
+          user:users!user_id(id, first_name, last_name)
+        `
+        )
+        .eq("message_id", messageId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error("Error fetching reactions:", error);
+      return [];
+    }
+  }
+
+  // Edit message
+  async editMessage(
+    messageId: string,
+    userId: string,
+    newContent: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({
+          content: newContent,
+          is_edited: true,
+          edited_at: new Date().toISOString(),
+        })
+        .eq("id", messageId)
+        .eq("sender_id", userId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error editing message:", error);
+      return false;
+    }
+  }
+
+  // Delete message
+  async deleteMessage(messageId: string, userId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          content: "This message was deleted",
+        })
+        .eq("id", messageId)
+        .eq("sender_id", userId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      return false;
+    }
+  }
+
+  // Get chat settings
+  async getChatSettings(userId: string): Promise<ChatSettings | null> {
+    try {
+      const { data, error } = await supabase
+        .from("chat_settings")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Error fetching chat settings:", error);
+      return null;
+    }
+  }
+
+  // Update chat settings
+  async updateChatSettings(
+    userId: string,
+    settings: Partial<ChatSettings>
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase.from("chat_settings").upsert({
+        user_id: userId,
+        ...settings,
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error updating chat settings:", error);
+      return false;
+    }
+  }
+
+  // Block user
+  async blockUser(
+    blockerId: string,
+    blockedId: string,
+    reason?: string
+  ): Promise<boolean> {
+    try {
+      const { error } = await supabase.from("blocked_users").insert({
+        blocker_id: blockerId,
+        blocked_id: blockedId,
+        reason: reason,
+      });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      return false;
+    }
+  }
+
+  // Unblock user
+  async unblockUser(blockerId: string, blockedId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from("blocked_users")
+        .delete()
+        .eq("blocker_id", blockerId)
+        .eq("blocked_id", blockedId);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      return false;
     }
   }
 }
 
-export const messagingService = new MessagingService()
+export const messagingService = new MessagingService();

@@ -20,7 +20,7 @@ import { Menu, Search, User, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ShoppingCart } from "@/components/shopping-cart";
-import { MessagingTrigger } from "@/components/messaging-trigger";
+// import { MessagingTrigger } from "@/components/messaging-trigger";
 import { LocationSelector } from "@/components/location-selector-simple";
 import { useLocation } from "@/lib/contexts/location-context";
 import { MarketplaceSearch } from "@/components/marketplace-search";
@@ -192,12 +192,12 @@ export function Navigation() {
           </div>
           <div className="flex items-center gap-2">
             {/* Desktop: Show messaging */}
-            <div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <MessagingTrigger
                 currentUserId={isLoggedIn ? "user-123" : undefined}
                 unreadCount={3}
               />
-            </div>
+            </div> */}
 
             <ShoppingCart />
 
@@ -256,9 +256,12 @@ export function Navigation() {
                     <DropdownMenuItem asChild>
                       <Link href="/orders">My Orders</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    {/* <DropdownMenuItem asChild>
                       <Link href="/messages">Messages</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/chat-demo">Chat Demo</Link>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
                       Logout
                     </DropdownMenuItem>
